@@ -1,8 +1,7 @@
 // Imports the discord.js library
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, NoSubscriberBehavior, AudioPlayerStatus } = require('@discordjs/voice');
 const { google } = require('googleapis');
-const play = require('play-dl');
 
 // Creates a new client instance
 const client = new Client({
@@ -86,18 +85,9 @@ function commandListener() {
                 const parsed_track = commandContent.slice(5).trim();
                 const voiceChannel = message.member?.voice.channel;
                 
-                // const permissions = voiceChannel.permissionsFor(message.guild.me);
-                // if (!permissions.has('SPEAK')) {
-                //     return message.reply('I do not have permission to join and speak in the voice channel!');
-                // }
-        
                 if (parsed_track) {
-                    // Set the new prefix to the term after the command
-                    const connection = joinVoiceChannel({
-                        channelId: voiceChannel.id,
-                        guildId: message.guild.id,
-                        adapterCreator: message.guild.voiceAdapterCreator,
-                    });
+                    
+                    connection = startConnection(voiceChannel)
 
                     try {
                         // Perform YouTube search
@@ -107,40 +97,13 @@ function commandListener() {
                             maxResults: 1,
                             type: 'video',
                         });
-                        
-            
+
                         const video = response.data.items[0];
-                        if (video) {
-                            const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
-                            const title = video.snippet.title;
-                            // message.reply(`Here’s a video I found: [${title}](${videoUrl})`);
-
-                            const stream = await play.stream(videoUrl);
-                            const resource = createAudioResource(stream.stream, {
-                                inputType: stream.type,
-                            });
-
-                            const player = createAudioPlayer();
-                            player.play(resource);
-                            connection.subscribe(player);
-
-                            message.reply(`Now playing: **${title}**`);
-
-                            player.on('error', (error) => {
-                                console.error('Audio Player Error:', error);
-                                message.reply('An error occurred while playing the audio.');
-                                connection.destroy();
-                            });
-
-                        } else {
-                            message.reply('No results found!');
-                        }
+                        
                     } catch (error) {
                         console.error('Error fetching YouTube data:', error);
                         message.reply('An error occurred while searching YouTube.');
                     }
-
-
 
                     const embed = new EmbedBuilder()
                     .setTitle(`Track searched: ${parsed_track}`)
@@ -165,4 +128,14 @@ function commandListener() {
             }
         }
     });
+}
+
+function startConnection(voiceChannel){
+    const connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: message.guild.id,
+        adapterCreator: message.guild.voiceAdapterCreator,
+    });
+
+    return connection
 }
