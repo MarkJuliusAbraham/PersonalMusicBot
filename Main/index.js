@@ -1,5 +1,7 @@
 // Imports the discord.js library
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { google } = require('googleapis');
+
 // Creates a new client instance
 const client = new Client({
     intents: [
@@ -18,6 +20,12 @@ var command_prefix_default = "!";
 const config = require('./config.json');  
 
 const token = config.token;
+const YOUTUBE_API_KEY = config.youtubeAPI;
+
+const youtube = google.youtube({
+    version: 'v3',
+    auth: YOUTUBE_API_KEY,
+});
 
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -30,7 +38,9 @@ client.login(token);
 
 function commandListener() {
     
-    client.on('messageCreate', message => {
+    client.on('messageCreate', async (message) => {
+        if (message.author.bot) return;
+
         if (message.content.startsWith(command_prefix_default)){
 
             const commandContent = message.content.slice(command_prefix_default.length).trim();
@@ -77,6 +87,30 @@ function commandListener() {
                 
                 if (parsed_track) {
                     // Set the new prefix to the term after the command
+
+                    try {
+                        // Perform YouTube search
+                        const response = await youtube.search.list({
+                            part: 'snippet',
+                            q: parsed_track,
+                            maxResults: 1,
+                            type: 'video',
+                        });
+            
+                        const video = response.data.items[0];
+                        if (video) {
+                            const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
+                            const title = video.snippet.title;
+                            message.reply(`Here’s a video I found: [${title}](${videoUrl})`);
+                        } else {
+                            message.reply('No results found!');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching YouTube data:', error);
+                        message.reply('An error occurred while searching YouTube.');
+                    }
+
+
 
                     const embed = new EmbedBuilder()
                     .setTitle(`Track searched: ${parsed_track}`)
