@@ -1,6 +1,7 @@
 // Imports the discord.js library
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const { google } = require('googleapis');
+const play = require('play-dl');
 
 // Creates a new client instance
 const client = new Client({
@@ -44,10 +45,6 @@ function commandListener() {
         if (message.content.startsWith(command_prefix_default)){
 
             const commandContent = message.content.slice(command_prefix_default.length).trim();
-
-
-
-
             
             if (commandContent.startsWith('ping')) {
                 message.channel.send('Hatdog si Myckes');
@@ -87,6 +84,13 @@ function commandListener() {
                 
                 if (parsed_track) {
                     // Set the new prefix to the term after the command
+                    const connection = joinVoiceChannel({
+                        channelId: voiceChannel.id,
+                        guildId: message.guild.id,
+                        adapterCreator: message.guild.voiceAdapterCreator,
+                    });
+                    const player = createAudioPlayer();
+                    connection.subscribe(player);
 
                     try {
                         // Perform YouTube search
