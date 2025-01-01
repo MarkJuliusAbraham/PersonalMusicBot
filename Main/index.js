@@ -86,8 +86,13 @@ function commandListener() {
                 const voiceChannel = message.member?.voice.channel;
                 
                 if (parsed_track) {
-                    
-                    connection = startConnection(voiceChannel)
+                
+
+                    const connection = joinVoiceChannel({
+                        channelId: voiceChannel.id,
+                        guildId: message.guild.id,
+                        adapterCreator: message.guild.voiceAdapterCreator,
+                    });
 
                     try {
                         // Perform YouTube search
@@ -128,14 +133,4 @@ function commandListener() {
             }
         }
     });
-}
-
-function startConnection(voiceChannel){
-    const connection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: message.guild.id,
-        adapterCreator: message.guild.voiceAdapterCreator,
-    });
-
-    return connection
 }

@@ -2,6 +2,7 @@
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
     "discord.js": "^14.16.3",
-    "googleapis": "^144.0.0"
+    "googleapis": "^144.0.0",
+    "yt-dlp-node": "github:yt-downloads/yt-dlp-node"
   }
 }
